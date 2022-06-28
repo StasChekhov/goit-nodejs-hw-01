@@ -1,5 +1,6 @@
 const fs = require("fs").promises;
 const path = require("path");
+var ObjectID = require("bson-objectid");
 
 const contactsPath = path.join(__dirname, "./db/contacts.json");
 // TODO: задокументировать каждую функцию
@@ -18,12 +19,23 @@ async function getContactById(contactId) {
  return result;
 }
 
-function removeContact(contactId) {
- // ...твой код
+async function removeContact(contactId) {
+ const contact = await listContacts();
+ const idx = contact.findIndex((item) => item.id === contactId);
+ if (idx === -1) {
+  return null;
+ }
+ const [removeContact] = contact.splice(idx, 1);
+ await fs.writeFile(contactsPath, JSON.stringify(contact, null, 2));
+ return removeContact;
 }
 
-function addContact(name, email, phone) {
- // ...твой код
+async function addContact(name, email, phone) {
+ const contact = await listContacts();
+ const newContact = { id: ObjectID(), name, email, phone };
+ contact.push(newContact);
+ await fs.writeFile(contactsPath, JSON.stringify(contact));
+ return newContact;
 }
 
-module.exports = { listContacts, getContactById };
+module.exports = { listContacts, getContactById, addContact, removeContact };
